@@ -17,7 +17,7 @@ app.listen(3000, () => {
 app.post('/todos', (req, res) => { // when postman accesses the /todos endpoint with a post request the body information supplied appears in the request object
 
   console.log(req.body)
-  let todo = new Todo({ // create new todo instance to save to database 
+  let todo = new Todo({ // create new todo instance to save to database
     text: req.body.text
   })
 
@@ -27,3 +27,8 @@ app.post('/todos', (req, res) => { // when postman accesses the /todos endpoint 
     res.status(400).send(err);
   })
 })
+
+
+module.exports = {
+  app: app
+}
