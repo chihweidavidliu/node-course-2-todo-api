@@ -3,7 +3,7 @@ const {MongoClient, ObjectID} = require('mongodb'); // using ES6 object destruct
 
 
 
-MongoClient.connect('mongodb://localhost:27017/TodoApp', { useNewUrlParser: true }, (err, client) => {
+MongoClient.connect('mongodb://localhost:27017/TodoApp', { useNewUrlParser: true }, (err, client) => { // connect takes the connect url and a callback
   if(err) {
      return console.log("Error connecting to database")
   }
