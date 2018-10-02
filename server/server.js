@@ -28,6 +28,14 @@ app.post('/todos', (req, res) => { // when postman accesses the /todos endpoint 
   })
 })
 
+app.get('/todos', (req, res) => {
+  Todo.find().then((todos) => {
+    res.send({todos})
+  }, (err) => {
+    res.status(400).send(err);
+  })
+})
+
 
 module.exports = {
   app: app
