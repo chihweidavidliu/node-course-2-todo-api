@@ -1,6 +1,7 @@
 const {mongoose} = require('./db/mongoose.js');
 const {Todo} = require('./models/todo')
 const {User} = require('./models/user')
+const {ObjectID} = require('mongodb'); // import ObjectID from mongodb for id validation methods
 
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -34,6 +35,23 @@ app.get('/todos', (req, res) => {
   }, (err) => {
     res.status(400).send(err);
   })
+})
+
+
+// get todo by id route
+app.get('/todos/:id', (req, res) => { // url parameters are are colon followed by a name - these variables are available on the req object within params object
+  let id = req.params.id;
+
+  if(!ObjectID.isValid(id)) {
+    return res.status(404).send();
+  }
+
+  Todo.findById(id).then((todo) => {
+    if(!todo) {
+      return res.status(404).send('ID not found')
+    }
+    res.send({todo: todo}); // instead of responding with the todo respond with an object that has todo object as property - this gives you greater flexibility - lets you add more properties if need be etc.
+  }).catch((err) => res.status(400).send())
 })
 
 
