@@ -3,14 +3,17 @@ const request = require('supertest');
 
 const {app} = require('./../server.js');
 const {Todo} = require('./../models/todo.js');
+const {ObjectID} = require('mongodb');
 
 const todos = [{
+    _id: new ObjectID(),
     text: "First test todo"
   }, {
+  _id: new ObjectID(),
   text: "Second test todo"
   }]
 
-beforeEach((done) => { // insert test todos into the database
+beforeEach((done) => { // insert test todos into the database (after clearing existing todos)
   Todo.remove({}).then(() => {
     Todo.insertMany(todos)
   }).then(() => done())
@@ -74,4 +77,33 @@ describe('GET /todos', () => {
       .end(done);
 
   })
+})
+
+describe('GET /todos:id', () => {
+  it('should return todo doc', (done) => {
+    request(app)
+      .get(`/todos/${todos[0]._id.toHexString()}`)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.todo.text).toBe(todos[0].text)
+      })
+      .end(done);
+  })
+
+  it('should return 404 if todo not found', (done) => {
+    let hexId = new ObjectID().toHexString();
+    request(app)
+    .get(`/todos/${hexId}`) // get a new objectID that is not in the collection of todos
+    .expect(404)
+    .end(done);
+  })
+
+  it('should return 404 for non-object ids', (done) => {
+    request(app)
+      .get(`/todos/123`)
+      .expect(404)
+      .end(done);
+  })
+
+
 })
