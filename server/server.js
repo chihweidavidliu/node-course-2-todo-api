@@ -6,13 +6,14 @@ const {ObjectID} = require('mongodb'); // import ObjectID from mongodb for id va
 const express = require('express');
 const bodyParser = require('body-parser');
 
+const port = process.env.PORT || 3000;
 
 var app = express();
 
 app.use(bodyParser.json()); // use bodyParser to parse request as JSON
 
-app.listen(3000, () => {
-  console.log('Started on port 3000')
+app.listen(port, () => {
+  console.log(`Listening to port ${port}`)
 });
 
 app.post('/todos', (req, res) => { // when postman accesses the /todos endpoint with a post request the body information supplied appears in the request object
