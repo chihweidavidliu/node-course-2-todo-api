@@ -14,7 +14,7 @@ const todos = [{
   }]
 
 beforeEach((done) => { // insert test todos into the database (after clearing existing todos)
-  Todo.remove({}).then(() => {
+  Todo.deleteMany({}).then(() => {
     Todo.insertMany(todos)
   }).then(() => done())
 })
@@ -22,8 +22,7 @@ beforeEach((done) => { // insert test todos into the database (after clearing ex
 describe('POST /todos', () => {
 
   it('should create a new todo', (done) => {
-    let text = 'This is a test';
-
+    let text = 'This is a test'
     request(app)
       .post('/todos')
       .send({text: text})
@@ -79,7 +78,7 @@ describe('GET /todos', () => {
   })
 })
 
-describe('GET /todos:id', () => {
+describe('GET /todos/:id', () => {
   it('should return todo doc', (done) => {
     request(app)
       .get(`/todos/${todos[0]._id.toHexString()}`)
@@ -104,6 +103,57 @@ describe('GET /todos:id', () => {
       .expect(404)
       .end(done);
   })
-
-
 })
+
+describe('DELETE /todos/:id', () => {
+  it('should return deleted todo', (done) => {
+    let hexId = todos[0]._id.toHexString();
+
+    request(app)
+    .delete(`/todos/${hexId}`)
+    .expect(200)
+    .expect((res) => {
+      expect(res.body.todo._id).toBe(hexId)
+    })
+    .end((err, res) => { // pass a callback into then end method in order to check database
+      if (err) {
+        return done(err)
+      }
+      Todo.findById(hexId).then((todo) => { // check database for the todo you just deleted
+        expect(todo).toBeFalsy(); // expect it to not to exist
+        done();
+      }).catch((err) => done(err));
+    });
+  });
+
+
+  it('should return 404 if todo not found', (done) => {
+    let hexId = '5bb372f4e029fa56b7b86a29';
+
+    request(app)
+      .delete(`/todos/${hexId}`)
+      .expect(404)
+      .end(done);
+
+  });
+
+  it('should return 404 if object id is invalid', (done) => {
+    request(app)
+      .delete('/todos/123')
+      .expect(404)
+      .end(done);
+
+  });
+});
+
+// describe('PATCH /todos/:id', () => {
+//   it('should update todo', (done) => {
+//     let hexId = todos[0]._id.toHexString();
+//     request(app)
+//     .patch(`/todos/${hexId}`)
+//     .expect(200)
+//     .expect((res) => {
+//       expect(res.body.todo._id).toBe(hexId)
+//     })
+//   })
+// })

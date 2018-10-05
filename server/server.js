@@ -3,6 +3,7 @@ const {Todo} = require('./models/todo')
 const {User} = require('./models/user')
 const {ObjectID} = require('mongodb'); // import ObjectID from mongodb for id validation methods
 
+const _ = require('lodash');
 const express = require('express');
 const bodyParser = require('body-parser');
 
@@ -53,6 +54,53 @@ app.get('/todos/:id', (req, res) => { // url parameters are are colon followed b
     }
     res.send({todo: todo}); // instead of responding with the todo respond with an object that has todo object as property - this gives you greater flexibility - lets you add more properties if need be etc.
   }).catch((err) => res.status(400).send())
+})
+
+// delete by id route
+
+app.delete('/todos/:id', (req, res) => {
+  let id = req.params.id;
+
+  if(!ObjectID.isValid(id)) {
+    return res.status(404).send('Invalid ID');
+  }
+
+  Todo.findByIdAndDelete(id).then((todo) => {
+    if(!todo) {
+      return res.status(404).send();
+    }
+
+    res.status(200).send({todo: todo})
+
+  }).catch((err) => res.status(400).send())
+
+})
+
+// patch route to update Todos
+
+app.patch('/todos/:id', (req, res) => {
+  let id = req.params.id;
+  let body = _.pick(req.body, ['text', 'completed']) // use lodash to pick out the properties users should be able to endpoint
+
+  if(!ObjectID.isValid(id)) {
+    return res.status(404).send('Invalid ID');
+  }
+
+  if(_.isBoolean(body.completed) && body.completed) { // if the user sets completed as a boolean and that boolean is truthy, then set the time of compeltion property on the todo
+    body.completedAt = new Date().getTime();
+  } else { // if the todo is not completed, set completed to false and completedAt property to null
+    body.completed = false;
+    body.completedAt = null;
+  }
+
+  Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => {
+    if(!todo) {
+      return res.status(404).send();
+    }
+    res.status(200).send({todo: todo});
+  }).catch((e) => {
+    res.status(400).send();
+  })
 })
 
 

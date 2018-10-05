@@ -23,7 +23,7 @@ MongoClient.connect('mongodb://localhost:27017/TodoApp', { useNewUrlParser: true
     console.log(result)
   })
 
-  // using the increment operator 
+  // using the increment operator
 
   db.collection('Users').findOneAndUpdate({
     _id: new ObjectID('5ba91e18221d4c888fdf05a6')
@@ -34,6 +34,8 @@ MongoClient.connect('mongodb://localhost:27017/TodoApp', { useNewUrlParser: true
     $set: {
       name: "En-Jia Liu"
     }
+  }, { // second parameter is options object
+    returnOriginal: false  // return new user info, not old 
   }).then((result) => {
     console.log(result)
   })
