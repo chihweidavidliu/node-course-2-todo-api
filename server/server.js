@@ -1,3 +1,5 @@
+require('./config/config.js'); // set up environment variables and ports/databsaes
+
 const {mongoose} = require('./db/mongoose.js');
 const {Todo} = require('./models/todo')
 const {User} = require('./models/user')
@@ -7,7 +9,7 @@ const _ = require('lodash');
 const express = require('express');
 const bodyParser = require('body-parser');
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT;
 
 var app = express();
 
