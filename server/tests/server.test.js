@@ -4,25 +4,13 @@ const request = require('supertest');
 const {app} = require('./../server.js');
 const {Todo} = require('./../models/todo.js');
 const {ObjectID} = require('mongodb');
+const {User} = require('./../models/user.js');
+const {todos, populateTodos, users, populateUsers} = require('./seed/seed.js'); // set up the test data for the test database using seed.js
 
-const todos = [{
-    _id: new ObjectID(),
-    text: "First test todo"
-  }, {
-  _id: new ObjectID(),
-  text: "Second test todo",
-  completed: true,
-  completedAt: 333
-  }]
-
-beforeEach((done) => { // insert test todos into the database (after clearing existing todos)
-  Todo.deleteMany({}).then(() => {
-    Todo.insertMany(todos)
-  }).then(() => done())
-})
+beforeEach(populateUsers);
+beforeEach(populateTodos);
 
 describe('POST /todos', () => {
-
   it('should create a new todo', (done) => {
     let text = 'This is a test'
     request(app)
@@ -180,5 +168,75 @@ describe('PATCH /todos/:id', () => {
     })
     .end(done)
   })
+
+})
+
+describe('GET /users/me', () => {
+  it('should return user if authenticated', (done) => {
+    request(app)
+    .get('/users/me')
+    .set('x-auth', users[0].tokens[0].token) // set header
+    .expect(200)
+    .expect((res) => {
+      expect(res.body._id).toBe(users[0]._id.toHexString());
+      expect(res.body.email).toBe(users[0].email);
+    })
+    .end(done);
+  })
+
+  it('should return a 401 if not authenticated', (done) => {
+    request(app)
+    .get('/users/me')
+    .expect(401)
+    .expect((res) => {
+      expect(res.body).toEqual({});
+    })
+    .end(done);
+  })
+
+})
+
+describe('POST /users', () => {
+  it('should create a user', (done) => {
+    let email = 'example@example.com';
+    let password = 'qwertyuiop1993';
+
+    request(app)
+      .post(`/users`)
+      .send({email: email, password, password})
+      .expect(200)
+      .expect((res) => {
+        expect(res.headers['x-auth']).toBeTruthy();
+        expect(res.body._id).toBeTruthy();
+        expect(res.body.email).toBe(email);
+      })
+      .end((err) => { // finish the  http request and then query the database to check a new user has been created, passing in any errors
+        if(err) { // check if there has been an error - don't check database if so
+          return done(err);
+        }
+
+        User.findOne({email: email}).then((user) => {
+          expect(user).toBeTruthy();
+          expect(user.password).not.toBe(password); // check that the password has been hashedPassword
+          done();
+        })
+      });
+  });
+
+  it('should return validation errors if request invalid', (done) => {
+    request(app)
+      .post('/users')
+      .send({email: 'example£', password: '1'})
+      .expect(400)
+      .end(done)
+  });
+
+  it('should not create user if email in use', (done) => {
+    request(app)
+      .post('/users')
+      .send({email: 'chihweiliu1993@gmail.com', password: "trin2342"})
+      .expect(400)
+      .end(done)
+  });
 
 })

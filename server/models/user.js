@@ -73,7 +73,7 @@ UserSchema.methods.toJSON = function() { // redefine toJSON method used when usi
 }
 
 
-//mongoose middleware
+//mongoose middleware (use the .pre() method on schema to set middleware)
 UserSchema.pre('save', function(next) { // this will hash all passwords every time a password is set or modified
   let user = this;
 
