@@ -124,8 +124,8 @@ app.post('/users', (req, res) => {
 })
 
 
-// get user info
-app.get('/users/me', authenticate, (req, res) => {
+// get user info - private route that needs authentication token in header
+app.get('/users/me', authenticate, (req, res) => { // add authenticate middleware to make route private
   res.send(req.user); // get the user from the req object as set in the authenticate middleware
 })
 

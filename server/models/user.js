@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const validator = require('validator'); // email validation library
 const jwt = require('jsonwebtoken');
 const _ = require('lodash');
+const bcrypt = require('bcryptjs');
 
 let UserSchema = new mongoose.Schema({
   email: {
@@ -70,6 +71,24 @@ UserSchema.methods.toJSON = function() { // redefine toJSON method used when usi
 
   return _.pick(userObject, ['_id', 'email']);
 }
+
+
+//mongoose middleware
+UserSchema.pre('save', function(next) { // this will hash all passwords every time a password is set or modified
+  let user = this;
+
+  if(user.isModified('password')) {
+    bcrypt.genSalt(10, (err, salt) => { //genSalt(number of rounds of encryption, callback with err and salt parameters)
+      bcrypt.hash(user.password, salt, (err, hash) => { //hash takes 3 arguments, thing to be hashed, the salt to be used and a callback
+        user.password = hash;
+        next(); // need to call next for middleware to move on
+      })
+    })
+  } else {
+    next();
+  }
+})
+
 
 // User model
 let User = mongoose.model('User', UserSchema)
