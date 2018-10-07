@@ -34,7 +34,7 @@ let UserSchema = new mongoose.Schema({
 
 //define authentification methods
 
-UserSchema.methods.generateAuthToken = function() {
+UserSchema.methods.generateAuthToken = function() { // schema.methods defines instance methods (methods applied to instances of the model)
   let user = this;
   let access = 'auth';
   let token = jwt.sign({_id: user._id.toHexString(), access: access}, 'abc123').toString();
@@ -44,6 +44,24 @@ UserSchema.methods.generateAuthToken = function() {
   return user.save().then(() => { // return this in order to allow server.js to chain on to this promise chain
     return token; // return token so that it is accessible in server.js
   })
+}
+
+UserSchema.statics.findByToken = function(token) { // schema.methods defines methods applied to the  model (here User) not to the specific instance
+  let User = this;
+  let decoded;
+
+  try {
+   decoded = jwt.verify(token, 'abc123');
+  } catch (e) {
+    return Promise.reject();
+  }
+
+  return User.findOne({ // success case - look in Users to find the matching user
+    '_id': decoded._id,
+    'tokens.token': token,
+    'tokens.access': 'auth'
+  });
+
 }
 
 UserSchema.methods.toJSON = function() { // redefine toJSON method used when using send() to leave off sensitive information

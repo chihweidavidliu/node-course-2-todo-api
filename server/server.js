@@ -3,6 +3,8 @@ require('./config/config.js'); // set up environment variables and ports/databsa
 const {mongoose} = require('./db/mongoose.js');
 const {Todo} = require('./models/todo')
 const {User} = require('./models/user')
+const {authenticate} = require('./middleware/authenticate.js');
+
 const {ObjectID} = require('mongodb'); // import ObjectID from mongodb for id validation methods
 
 const _ = require('lodash');
@@ -119,6 +121,12 @@ app.post('/users', (req, res) => {
       res.status(400).send(err);
   })
 
+})
+
+
+// get user info
+app.get('/users/me', authenticate, (req, res) => {
+  res.send(req.user); // get the user from the req object as set in the authenticate middleware
 })
 
 module.exports = {
