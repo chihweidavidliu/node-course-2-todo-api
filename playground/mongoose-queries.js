@@ -14,24 +14,24 @@ if(!ObjectID.isValid(userId)) {
   return console.log('User ID not valid')
 }
 
-// // find()
-// Todo.find({
-//   _id: id // mongoose does not require you to pass in id object as in vanilla mongodb
-// }).then((todos) => {
-//   console.log('Todos', todos)
-// }
-//
-// )
-//
-// //findOne() graps first matching document
-//
-// Todo.findOne({
-//   _id: id
-// }).then((todo) => {
-//   console.log('Todo', todo)
-// })
+// find()
+Todo.find({
+  _id: id // mongoose does not require you to pass in id object as in vanilla mongodb
+}).then((todos) => {
+  console.log('Todos', todos)
+}
 
-//findById
+)
+
+//findOne() graps first matching document
+
+Todo.findOne({
+  _id: id
+}).then((todo) => {
+  console.log('Todo', todo)
+})
+
+findById
 
 Todo.findById(id).then((todo) => {
   if(!todo) {

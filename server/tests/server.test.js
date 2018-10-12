@@ -237,6 +237,37 @@ describe('POST /users', () => {
       .send({email: 'chihweiliu1993@gmail.com', password: "trin2342"})
       .expect(400)
       .end(done)
+    });
   });
 
+
+
+describe('POST /users/login', () => {
+  it('should return user if credentials are valid', (done) => {
+    request(app)
+      .post('/users/login')
+      .send({email: "chihweiliu1993@gmail.com", password: "password"}) // insert valid credentials for one of the seed users
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.email).toBe("chihweiliu1993@gmail.com")
+        expect(res.header['x-auth']).toBeTruthy();
+      })
+      .end(done)
+  });
+
+  it('should return 400 if no user found', (done) => {
+    request(app)
+      .post('/users/login')
+      .send({email: 'bob@gmail.com', password: "password"})
+      .expect(400)
+      .end(done);
+  })
+
+  it('should return 400 if password does not match', (done) => {
+    request(app)
+      .post('/users/login')
+      .send({email: "chihweiliu1993@gmail.com", password: "1"})
+      .expect(400)
+      .end(done)
+  })
 })

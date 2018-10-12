@@ -35,6 +35,7 @@ let UserSchema = new mongoose.Schema({
 
 //define authentification methods
 
+// generate authentification token for a specific user
 UserSchema.methods.generateAuthToken = function() { // schema.methods defines instance methods (methods applied to instances of the model)
   let user = this;
   let access = 'auth';
@@ -47,6 +48,9 @@ UserSchema.methods.generateAuthToken = function() { // schema.methods defines in
   })
 }
 
+
+
+//method to search Users database via authentication token
 UserSchema.statics.findByToken = function(token) { // schema.methods defines methods applied to the  model (here User) not to the specific instance
   let User = this;
   let decoded;
@@ -54,15 +58,38 @@ UserSchema.statics.findByToken = function(token) { // schema.methods defines met
   try {
    decoded = jwt.verify(token, 'abc123');
   } catch (e) {
-    return Promise.reject();
+    return Promise.reject(); // this will trigger catch case in server.js
   }
 
   return User.findOne({ // success case - look in Users to find the matching user
     '_id': decoded._id,
-    'tokens.token': token,
+    'tokens.token': token, // use dot notation within quotes to go to a deeper level within the user object
     'tokens.access': 'auth'
   });
 
+}
+
+// method to search Users database via email
+UserSchema.statics.findByCredentials = function(email, password) {
+  let User = this;
+
+  return User.findOne({
+    'email': email
+  }).then((user) => {
+    if(!user) {
+      return Promise.reject(); // this will trigger catch case in server.js
+    }
+    
+    return new Promise((resolve, reject) => {
+      bcrypt.compare(password, user.password, (err, res) => {
+        if(res == true) {
+          resolve(user)
+        } else {
+          reject();
+        }
+      })
+    })
+  })
 }
 
 UserSchema.methods.toJSON = function() { // redefine toJSON method used when using send() to leave off sensitive information
