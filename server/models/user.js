@@ -48,6 +48,17 @@ UserSchema.methods.generateAuthToken = function() { // schema.methods defines in
   })
 }
 
+UserSchema.methods.removeToken = function(token) {
+  let user = this;
+
+  return user.update({
+    $pull: {
+      tokens: {
+        token: token,
+      }
+    }
+  })
+}
 
 
 //method to search Users database via authentication token
@@ -79,7 +90,7 @@ UserSchema.statics.findByCredentials = function(email, password) {
     if(!user) {
       return Promise.reject(); // this will trigger catch case in server.js
     }
-    
+
     return new Promise((resolve, reject) => {
       bcrypt.compare(password, user.password, (err, res) => {
         if(res == true) {
