@@ -271,3 +271,22 @@ describe('POST /users/login', () => {
       .end(done)
   })
 })
+
+describe('DELETE /users/me/token', () => {
+  it('should delete user by token', (done) => {
+    request(app)
+      .delete('/users/me/token')
+      .set('x-auth', users[0].tokens[0].token) // set header
+      .expect(200)
+      .end(err => {
+        if(err) {
+          return done(err)
+        }
+        User.findOne({email: 'chihweiliu1993@gmail.com'}).then(user => {
+          expect(user.tokens.length).toBe(0);
+          done();
+        }).catch((e) => done(e));
+      })
+  })
+
+})
