@@ -21,11 +21,13 @@ app.listen(port, () => {
   console.log(`Listening to port ${port}`)
 });
 
-app.post('/todos', (req, res) => { // when postman accesses the /todos endpoint with a post request the body information supplied appears in the request object
+
+app.post('/todos', authenticate, (req, res) => { // when postman accesses the /todos endpoint with a post request the body information supplied appears in the request object
 
   console.log(req.body)
   let todo = new Todo({ // create new todo instance to save to database
-    text: req.body.text
+    text: req.body.text,
+    _creator: req.user._id // get user id and set it as creator on the newly created todo
   })
 
   todo.save().then((doc) => { // save to database
@@ -35,8 +37,10 @@ app.post('/todos', (req, res) => { // when postman accesses the /todos endpoint 
   })
 })
 
-app.get('/todos', (req, res) => {
-  Todo.find().then((todos) => {
+app.get('/todos', authenticate, (req, res) => {
+  Todo.find({
+    _creator: req.user._id // find all the todos created by the user
+  }).then((todos) => {
     res.send({todos})
   }, (err) => {
     res.status(400).send(err);
@@ -45,14 +49,17 @@ app.get('/todos', (req, res) => {
 
 
 // get todo by id route
-app.get('/todos/:id', (req, res) => { // url parameters are are colon followed by a name - these variables are available on the req object within params object
+app.get('/todos/:id', authenticate, (req, res) => { // url parameters are are colon followed by a name - these variables are available on the req object within params object
   let id = req.params.id;
 
   if(!ObjectID.isValid(id)) {
     return res.status(404).send();
   }
 
-  Todo.findById(id).then((todo) => {
+  Todo.findOne({
+    _id: id,
+    _creator: req.user._id
+  }).then((todo) => {
     if(!todo) {
       return res.status(404).send('ID not found')
     }
@@ -62,14 +69,17 @@ app.get('/todos/:id', (req, res) => { // url parameters are are colon followed b
 
 // delete by id route
 
-app.delete('/todos/:id', (req, res) => {
+app.delete('/todos/:id', authenticate, (req, res) => {
   let id = req.params.id;
 
   if(!ObjectID.isValid(id)) {
     return res.status(404).send('Invalid ID');
   }
 
-  Todo.findByIdAndDelete(id).then((todo) => {
+  Todo.findOneAndRemove({
+    _id: id,
+    _creator: req.user._id // make sure the creator is the same as the current logged in user
+  }).then((todo) => {
     if(!todo) {
       return res.status(404).send();
     }
@@ -82,7 +92,7 @@ app.delete('/todos/:id', (req, res) => {
 
 // patch route to update Todos
 
-app.patch('/todos/:id', (req, res) => {
+app.patch('/todos/:id', authenticate, (req, res) => {
   let id = req.params.id;
   let body = _.pick(req.body, ['text', 'completed']) // use lodash to pick out the properties users should be able to endpoint
 
@@ -97,7 +107,10 @@ app.patch('/todos/:id', (req, res) => {
     body.completedAt = null;
   }
 
-  Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => {
+  Todo.findOneAndUpdate({
+    _id: id,
+    _creator: req.user._id
+  }, {$set: body}, {new: true}).then((todo) => {
     if(!todo) {
       return res.status(404).send();
     }
