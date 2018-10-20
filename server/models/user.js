@@ -39,7 +39,7 @@ let UserSchema = new mongoose.Schema({
 UserSchema.methods.generateAuthToken = function() { // schema.methods defines instance methods (methods applied to instances of the model)
   let user = this;
   let access = 'auth';
-  let token = jwt.sign({_id: user._id.toHexString(), access: access}, 'abc123').toString();
+  let token = jwt.sign({_id: user._id.toHexString(), access: access}, process.env.JWT_SECRET).toString();
 
   user.tokens.push({access, token});
 
@@ -67,7 +67,7 @@ UserSchema.statics.findByToken = function(token) { // schema.methods defines met
   let decoded;
 
   try {
-   decoded = jwt.verify(token, 'abc123');
+   decoded = jwt.verify(token, process.env.JWT_SECRET);
   } catch (e) {
     return Promise.reject(); // this will trigger catch case in server.js
   }
