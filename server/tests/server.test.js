@@ -255,7 +255,7 @@ describe('POST /users', () => {
 
     request(app)
       .post(`/users`)
-      .send({email: email, password, password})
+      .send({email: email, passwo password})
       .expect(200)
       .expect((res) => {
         expect(res.headers['x-auth']).toBeTruthy();
